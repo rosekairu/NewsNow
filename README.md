@@ -1,4 +1,4 @@
-## NewsWave
+## NewsNow
 
 #### An application that allows users to preview and read news articles from various sources all around the world.
 
