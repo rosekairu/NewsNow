@@ -47,7 +47,7 @@ def index():
         return redirect(url_for('.news_topic', query=topic_name))
 
     else:
-        title="NewsWave"
+        title="NewsNow"
         return render_template('index.html', title=title, breaking_news=top_news, cnn=cnn, bbc=bbc, al=aljazeera,usa_today=usa_today, politico=politico, cbs=cbs, sources=sources, newsweek=newsweek, fox=fox, time=time, nbc=nbc, reuters=reuters, msnbc=msnbc)
 
 
