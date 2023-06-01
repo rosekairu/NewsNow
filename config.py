@@ -2,7 +2,7 @@ import os
 
 class Config:
     SECRET_KEY=os.environ.get('SECRET_KEY')
-    NEWS_API_KEY='9ec1c016660043a4892e9023a5e768b1'
+    NEWS_API_KEY='79636e40839742c78b5049f56ce3dcb2'
 
 
 class ProdConfig(Config):
