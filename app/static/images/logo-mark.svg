@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NewsNow">
+  <rect width="64" height="64" rx="6" fill="#c8102e"/>
+  <g fill="#fff">
+    <rect x="15" y="16" width="5" height="32"/>
+    <rect x="10" y="16" width="15" height="3"/>
+    <rect x="10" y="45" width="15" height="3"/>
+    <rect x="36" y="16" width="5" height="32"/>
+    <rect x="31" y="16" width="15" height="3"/>
+    <polygon points="15,16 23,16 41,48 33,48"/>
+    <circle cx="51.5" cy="19" r="4"/>
+  </g>
+</svg>

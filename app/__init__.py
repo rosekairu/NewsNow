@@ -1,5 +1,6 @@
 import os
 from flask import Flask, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import config_options
 
 def create_app(config_name):
@@ -7,6 +8,9 @@ def create_app(config_name):
     app=Flask(__name__)
 
     app.config.from_object(config_options[config_name])
+
+    # Hosting services pass requests through a proxy; trust its headers so full links use https
+    app.wsgi_app=ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

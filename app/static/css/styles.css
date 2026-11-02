@@ -120,6 +120,18 @@ input:focus-visible {
     line-height: 1;
 }
 
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18em;
+}
+
+.brand-mark {
+    width: 0.78em;
+    height: 0.78em;
+    margin-right: 0.04em;
+}
+
 .brand b {
     color: var(--red);
 }
