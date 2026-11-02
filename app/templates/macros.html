@@ -1,58 +1,61 @@
-{% macro displayNewsList(news_list) %}    
-
-{% for item in news_list %}
-
-<div class="col-xs-12 col-md-4">
-    <div class="card h-100">
-        <img class="card-img-top" src="{{item.url_to_image}}" alt="{{item.source_name}}" onerror="imgError(this);">
-        <div class="card-body">
-          <h5 class="card-title">{{item.published_at}}</h5>
-          <p class="card-text"><a href="{{item.url}}" target="_blank">{{item.title}}</a></p>
-          <p class="card-text">- {{item.author}}</p>                              
-        </div>
-    </div>
-</div>
-
-{% endfor %} 
-
+{# Source name and publish time, shown under a headline #}
+{% macro meta(item, show_source=True) %}
+<p class="meta">
+    {% if show_source %}{{ item.source_name }}{% if item.published_at %} · {% endif %}{% endif %}
+    {% if item.published_at %}<time datetime="{{ item.published_iso }}" data-relative>{{ item.published_at }}</time>{% endif %}
+</p>
 {% endmacro %}
 
 
-
-{% macro displaySources(sources) %}    
-
-{% for source in sources %}
-
-<p><a href="/source/{{source.source_id}}">{{source.source_name}}</a></p>
-
-{% endfor %}  
-
+{# Authors of a research paper #}
+{% macro byline(item) %}
+{% if item.kind == 'paper' and item.author %}<p class="byline">{{ item.author }}</p>{% endif %}
 {% endmacro %}
 
 
-
-{% macro displayCarousel(breaking_list) %}    
-
-{% for breaking_news in breaking_list %}
-
-{% if breaking_news.title==breaking_list[0].title %}
-
-{% else %}
-
-<div class="item">
-  <img src="{{breaking_news.url_to_image}}" alt="..." onerror="imgError(this);">
-  <div class="carousel-caption">
-      <p><a href="{{breaking_news.url}}" target="_blank">{{breaking_news.title}}</a></p>                                    
-  </div>
-</div>
-
+{# Article photo; removed if it fails to load, since the layout reads fine without it #}
+{% macro photo(item, ratio='wide') %}
+{% if item.url_to_image %}
+<figure class="photo photo-{{ ratio }}">
+    <img src="{{ item.url_to_image }}" alt="" loading="lazy" onerror="this.parentNode.remove()">
+</figure>
 {% endif %}
-
-
-{% endfor %}  
-
 {% endmacro %}
 
 
+{# Lead story: large photo beside a large headline #}
+{% macro lead(item, label) %}
+<article class="lead">
+    {{ photo(item, 'lead') }}
+    <div class="lead-text">
+        <p class="kicker">{{ label }}</p>
+        <h2 class="lead-headline"><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
+        {{ byline(item) }}
+        {% if item.description %}<p class="standfirst">{{ item.description }}</p>{% endif %}
+        {{ meta(item) }}
+    </div>
+</article>
+{% endmacro %}
 
 
+{# Standard story in a ruled grid column #}
+{% macro story(item, label=None) %}
+<article class="story">
+    {{ photo(item) }}
+    <p class="kicker">{{ label or (('Paper · ' if item.kind == 'paper' else '') ~ item.source_name) }}</p>
+    <h3 class="story-headline"><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
+    {{ byline(item) }}
+    {% if item.description %}<p class="summary">{{ item.description | truncate(170) }}</p>{% endif %}
+    {{ meta(item, show_source=label is not none) }}
+</article>
+{% endmacro %}
+
+
+{# Shown when there are no articles to list #}
+{% macro empty_state() %}
+<section class="empty">
+    <h2>No articles to show</h2>
+    <p>Either nothing matched your search, or the news feeds for this page couldn't be reached. Try a different search, or check back in a few minutes.</p>
+    <p><a href="{{ url_for('main.index') }}">Back to top stories</a></p>
+</section>
+{% endmacro %}

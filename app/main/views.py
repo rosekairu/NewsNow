@@ -1,149 +1,113 @@
-from flask import render_template, request, redirect, url_for
+from datetime import date
+from flask import render_template, request, redirect, url_for, abort
 from . import main
-from ..requests import get_news,news_from_source,get_sources, search_topic, search_from_source
+from ..feeds import (outlets, feed, top_stories, topics, sections, countries,
+                     get_articles, search, outlet_feeds, source_list, credit, find_page_image)
 
-countries_dict={
-    "cn":"China",
-    "fr":"France",
-    "de":"Germany",
-    "it":"Italy",
-    "gb":"United Kingdom",
-    "ru":"Russia",
-    "za":"South Africa",
-    "ca":"Canada",
-    "il":"Israel",
-    "au":"Australia",
-    "nz":"New Zealand",
-    "in":"India",
-    "nl":"Netherlands",
-    "jp":"Japan",
-    "mx":"Mexico",
-    "us":"United States"
-}
+
+# Order of the links in the section bar, after Top Stories
+nav_order=['general', 'africa', 'ai', 'startups', 'funding', 'technology', 'research',
+           'science', 'health', 'business', 'entertainment', 'sports']
+
+
+@main.app_context_processor
+def navigation():
+    nav_links=[]
+    for page_id in nav_order:
+        if page_id in topics:
+            nav_links.append((url_for('main.news_category', id=page_id), topics[page_id][0]))
+        else:
+            nav_links.append((url_for('main.news_section', id=page_id), sections[page_id][0]))
+
+    return dict(
+        nav_links=nav_links,
+        nav_countries=[(code, name) for code, (name, feeds) in countries.items()],
+        sources=source_list(),
+        today=date.today()
+    )
+
 
 @main.route('/')
 @main.route('/home')
 def index():
-    top_news=get_news("us", "general")
-
-    cnn=news_from_source("cnn")
-    bbc=news_from_source("bbc-news")
-    aljazeera=news_from_source("al-jazeera-english")
-    usa_today=news_from_source("usa-today")
-    politico=news_from_source("politico")
-    cbs=news_from_source("cbs-news")
-    newsweek=news_from_source("newsweek")
-    fox=news_from_source("fox-news")
-    time=news_from_source("time")
-    nbc=news_from_source("nbc-news")
-    reuters=news_from_source("reuters")
-    msnbc=news_from_source("msnbc")
-
-    sources=get_sources()
-
     topic_name = request.args.get('topic_query')
 
     if topic_name:
         return redirect(url_for('.news_topic', query=topic_name))
 
-    else:
-        title="NewsNow"
-        return render_template('index.html', title=title, breaking_news=top_news, cnn=cnn, bbc=bbc, al=aljazeera,usa_today=usa_today, politico=politico, cbs=cbs, sources=sources, newsweek=newsweek, fox=fox, time=time, nbc=nbc, reuters=reuters, msnbc=msnbc)
+    return render_template('index.html', title="NewsNow", breaking_news=get_articles(top_stories))
 
 
 @main.route('/source/<id>')
 def news_source(id):
-    news_list=news_from_source(id)
-    title=news_list[0].source_name
-    source_id=id
-    sources=get_sources()
+    if id not in outlets:
+        abort(404)
 
+    title=outlets[id]['name']
     topic_name = request.args.get('from_source')
 
     if topic_name:
-        return redirect(url_for('.news_in_source', source_nm=title, this_source=source_id, query=topic_name ))
-    
-    else:
-        return render_template('news_list.html', title=title, news_list=news_list, source_title=title, sources=sources)
+        return redirect(url_for('.news_in_source', source_nm=title, this_source=id, query=topic_name))
+
+    return render_template('news_list.html', kicker="Source", title=title, news_list=get_articles([feed(id)]), source_title=title)
 
 
 @main.route('/breaking')
 def breaking_news():
-    breaking_news=get_news("us", "general")
-    title="Breaking News"
-    sources=get_sources()
-
-    topic_name = request.args.get('topic_query')
-
-    if topic_name:
-        return redirect(url_for('.news_topic', query=topic_name))
-    
-    else:
-        return render_template('news_list.html', title=title, news_list=breaking_news, sources=sources)    
+    return render_template('news_list.html', kicker="Top stories", title="Breaking News", subtitle=credit(top_stories), news_list=get_articles(top_stories))
 
 
 @main.route('/categories/<id>')
 def news_category(id):
-    category_news=get_news("us", id)
-    title=id.capitalize()
-    sources=get_sources()
+    if id not in topics:
+        abort(404)
 
-    topic_name = request.args.get('topic_query')
-
-    if topic_name:
-        return redirect(url_for('.news_topic', query=topic_name))
-    
-    else:
-        return render_template('news_list.html', title=title, news_list=category_news, sources=sources)   
+    title, feeds=topics[id]
+    return render_template('news_list.html', kicker="Topic", title=title, subtitle=credit(feeds), news_list=get_articles(feeds))
 
 
 @main.route('/countries/<id>')
 def news_country(id):
-    country_news=get_news(id, "general")
-    title=countries_dict[id]
-    sources=get_sources()
+    if id not in countries:
+        abort(404)
 
-    topic_name = request.args.get('topic_query')
+    title, feeds=countries[id]
+    return render_template('news_list.html', kicker="Country", title=title, subtitle=credit(feeds), news_list=get_articles(feeds))
 
-    if topic_name:
-        return redirect(url_for('.news_topic', query=topic_name))
-    
-    else:
-        return render_template('news_list.html', title=title, news_list=country_news, sources=sources)    
+
+@main.route('/sections/<id>')
+def news_section(id):
+    if id not in sections:
+        abort(404)
+
+    title, feeds=sections[id]
+    return render_template('news_list.html', kicker="Section", title=title, subtitle=credit(feeds), news_list=get_articles(feeds))
+
+
+@main.route('/article-image')
+def article_image():
+    image=find_page_image(request.args.get('url', ''))
+    if not image:
+        return '', 404
+
+    response=redirect(image)
+    response.headers['Cache-Control']='public, max-age=86400'
+    return response
 
 
 @main.route('/topic/<query>')
 def news_topic(query):
-    query_name_list = query.split(" ")
-    query_name_format = "+".join(query_name_list)
-    articles=search_topic(query_name_format)
-    title="Articles: "+query
-    sources=get_sources()
-
-    topic_name = request.args.get('topic_query')
-
-    if topic_name:
-        return redirect(url_for('.news_topic', query=topic_name))
-    
-    else:
-        return render_template('news_list.html', title=title, news_list=articles, sources=sources)
+    return render_template('news_list.html', kicker="Search results", title=query, subtitle="Matching headlines from the latest stories on every page of NewsNow", news_list=search(query))
 
 
 @main.route('/fromSource/<source_nm>/<this_source>/<query>')
 def news_in_source(source_nm, this_source, query):
-    source_id=this_source
-    query_name_list = query.split(" ")
-    query_name_format = "+".join(query_name_list)
-    articles=search_from_source(query_name_format, source_id)
-    source_title=source_nm
-    title=source_nm+": "+query
-    sources=get_sources()
+    if this_source not in outlets:
+        abort(404)
 
     topic_name = request.args.get('from_source')
 
     if topic_name:
-        return redirect(url_for('.news_in_source', source_nm=source_title, this_source=source_id, query=topic_name ))
-    
-    else:
-        return render_template('news_list.html', title=title, source_title=source_title, news_list=articles, sources=sources)
-    
+        return redirect(url_for('.news_in_source', source_nm=source_nm, this_source=this_source, query=topic_name))
+
+    return render_template('news_list.html', kicker="Search results in "+source_nm, title=query, news_list=search(query, outlet_feeds(this_source)), source_title=source_nm)

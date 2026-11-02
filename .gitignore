@@ -1,4 +1,8 @@
 virtual/
+venv/
+__pycache__/
+.venv*/
+.env
 *.pyc
 start.sh
 .vscode

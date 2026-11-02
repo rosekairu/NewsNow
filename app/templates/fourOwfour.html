@@ -1,17 +1,12 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 
 {% block content %}
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="jumbotron text-center">
-                <h1>404 Error</h1>
-                <h1>Page Not Found</h1>
-                <button class="btn btn-outline-secondary"><a href="/">Home Page</a></button>
-            </div>
-        </div>
-    </div>
-</div>    
+<section class="empty">
+    <p class="kicker">Error 404</p>
+    <h1>We couldn't find that page</h1>
+    <p>The link may be mistyped, or the page may no longer exist.</p>
+    <p><a href="{{ url_for('main.index') }}">Back to top stories</a></p>
+</section>
 
 {% endblock %}

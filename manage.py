@@ -1,18 +1,9 @@
+import os
 from app import create_app
-from flask_script import Manager, Server
 
-app= create_app('development')
+# Hosting services set FLASK_CONFIG=production; running this file locally uses development mode
+app= create_app(os.environ.get('FLASK_CONFIG', 'development'))
 
-manager=Manager(app)
-manager.add_command('server', Server)
-
-@manager.command
-def test():
-    """Run the unit tests."""
-    import unittest
-    tests = unittest.TestLoader().discover('tests')
-    unittest.TextTestRunner(verbosity=2).run(tests)
-    
 
 if __name__=='__main__':
-    manager.run()
+    app.run(debug=app.debug)

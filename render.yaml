@@ -1,0 +1,13 @@
+# Render Blueprint: creates the NewsNow web service on Render's free plan.
+# One worker with several threads, so every request shares the same 30-minute feed cache
+# and article photos can be looked up while pages are being served.
+services:
+  - type: web
+    name: newsnow
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn manage:app --workers 1 --threads 8 --timeout 60
+    envVars:
+      - key: FLASK_CONFIG
+        value: production

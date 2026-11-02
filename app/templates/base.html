@@ -1,36 +1,68 @@
-{% extends 'bootstrap/base.html'%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if title and title != 'NewsNow' %}{{ title }} · {% endif %}NewsNow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="{{ versioned_static('css/styles.css') }}">
+</head>
+<body>
+    {% set path = request.path %}
+    <header class="masthead">
+        <div class="container">
+            <div class="masthead-top">
+                <p class="today" id="today">{{ today.strftime('%A') }}, {{ today.day }} {{ today.strftime('%B %Y') }}</p>
+                <a class="brand" href="{{ url_for('main.index') }}">News<b>Now</b></a>
+                <form class="search" action="{{ url_for('main.index') }}" method="get" role="search">
+                    <label class="visually-hidden" for="topic-query">Search all articles</label>
+                    <input id="topic-query" type="search" name="topic_query" placeholder="Search all articles" required>
+                    <button type="submit">Search</button>
+                </form>
+            </div>
 
-{% block styles%}
-    {{ super() }}
-    <link rel="stylesheet" href="{{url_for('static',filename='css/styles.css')}}">
-{% endblock %}
+            <nav class="sections" aria-label="Sections">
+                <a href="{{ url_for('main.index') }}" {% if path in ['/', '/home'] %}class="active" aria-current="page"{% endif %}>Top Stories</a>
+                {% for href, label in nav_links %}
+                <a href="{{ href }}" {% if path == href %}class="active" aria-current="page"{% endif %}>{{ label }}</a>
+                {% endfor %}
+                <span class="nav-divider" aria-hidden="true"></span>
 
-{% block scripts%}
-    {{ super() }}    
-    <script src="{{url_for('static',filename='js/scripts.js')}}"></script>
-{% endblock %}
+                <details class="menu{% if path.startswith('/countries/') %} active{% endif %}">
+                    <summary>Countries</summary>
+                    <div class="menu-panel menu-panel-columns">
+                        {% for code, name in nav_countries %}
+                        <a href="{{ url_for('main.news_country', id=code) }}">{{ name }}</a>
+                        {% endfor %}
+                    </div>
+                </details>
 
-{% block head%}
-    {{ super() }}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <!-- <script src="js/bootstrap.min.js"></script> -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="  crossorigin="anonymous"></script>
-    <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
-{% endblock %}
+                <details class="menu{% if path.startswith('/source/') or path.startswith('/fromSource/') %} active{% endif %}">
+                    <summary>Sources</summary>
+                    <div class="menu-panel menu-panel-columns">
+                        {% for source in sources or [] %}
+                        <a href="{{ url_for('main.news_source', id=source.source_id) }}">{{ source.source_name }}</a>
+                        {% else %}
+                        <span class="unavailable">Sources are unavailable right now</span>
+                        {% endfor %}
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </header>
 
-{% block title%}
-    {{ super() }}    
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
 
-    {% if title %}
-        
-    {% else %}
-        NewsNow
-    {% endif %}
-    
+    <footer class="site-footer">
+        <div class="container">
+            <p>Headlines and summaries come from each publisher's own news feed, and every story links to the original. Pages refresh every 30 minutes.</p>
+        </div>
+    </footer>
 
-{% endblock %}
-
-
-
-
-
+    <script src="{{ versioned_static('js/scripts.js') }}"></script>
+</body>
+</html>

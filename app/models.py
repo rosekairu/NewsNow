@@ -1,5 +1,5 @@
 class NewsArticle:
-    def __init__(self, source_name, author, title, url, url_to_image, published_at, description, content):
+    def __init__(self, source_name, author, title, url, url_to_image, published_at, description, content, source_id=None, published_iso=None):
         self.source_name=source_name
         self.author=author
         self.title=title
@@ -8,6 +8,9 @@ class NewsArticle:
         self.published_at=published_at
         self.description=description
         self.content=content
+        self.source_id=source_id
+        self.published_iso=published_iso
+        self.kind='article'
 
 class Sources:
     def __init__(self, source_id, source_name):
