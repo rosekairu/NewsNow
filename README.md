@@ -2,6 +2,8 @@
 
 #### A newspaper-style news site that gathers the latest headlines from publishers around the world.
 
+**Live:** [newsnow-b66u.onrender.com](https://newsnow-b66u.onrender.com/)
+
 ### Description
 NewsNow reads publishers' own RSS and Atom news feeds and lays the stories out like a newspaper front page. Every story links to the original article.
 
@@ -44,6 +46,6 @@ The repository includes a [render.yaml](render.yaml) Blueprint for Render's free
 
 1. Push this repository to GitHub.
 2. In Render, choose **New > Blueprint** and select the repository. Render reads `render.yaml`, installs the requirements and starts the site with Gunicorn.
-3. The site appears at an address like `https://newsnow.onrender.com`.
+3. The site appears at an `onrender.com` address based on the service name, such as `https://newsnow-b66u.onrender.com`. Render adds a short suffix when the name is already taken, so check the address on the service's page in Render.
 
 On the free plan the site sleeps after 15 minutes without visitors, and the next visit takes about a minute to wake it.
